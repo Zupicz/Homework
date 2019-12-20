@@ -17,7 +17,7 @@ class Point:
     def getY(self):
         return self.__y
 
-class Mock:
+"""class Mock:
 
     def __init__(self, size, max_X, max_Y):
         self.__size = size
@@ -28,7 +28,7 @@ class Mock:
         points = []
         for i in range(0, self.__size):
             points.append(Point(i, randint(0, self.__max_X), randint(0, self.__max_Y)))
-        return points
+        return points"""
 
 class Input:
 
@@ -52,13 +52,16 @@ class Input:
 
 class Square:
 
-    def __init__(self, origin, dim):
-        self.__origin = origin
-        self.__dim = dim
+    def __init__(self, x0, y0, width, height, points):
+        self.__x0 = x0
+        self.__y0 = y0
+        self.__width = width
+        self.__height = height
+        self.__points = points
         self.__children = []
 
     def __repr__(self):
-        return f"(Origin={self.__origin}, length={self.__dim}, children={self.__children})"
+        return f"(Origin={self.__x0},{self.__y0}, width={self.__width}, height={self.__height} children={self.__children})"
 
     def setChildren(self, children):
         self.__children = children
@@ -66,13 +69,22 @@ class Square:
     def getChildren(self):
         return self.__children
 
-    def getOrigin(self):
-        return self.__origin
+    def getX0(self):
+        return self.__x0
 
-    def getDim(self):
-        return self.__dim
+    def getY0(self):
+        return self.__y0
 
-class SquareManager:
+    def getWidth(self):
+        return self.__width
+
+    def getHeight(self):
+        return self.__height
+
+    def getPoints(self):
+        return self.__points
+
+"""class SquareManager:
 
     def initSquare(self, points):
         maxX = 0
@@ -84,11 +96,54 @@ class SquareManager:
 
         origin = Point("AA", 0, 0)
 
-        return Square(origin, max(maxX, maxY))
+        return Square(origin, max(maxX, maxY))"""
 
 class QuadTree:
 
-    def split(self, square):
+    def __init__(self, capacity, points):
+        self.__capacity = capacity
+        self.__points = points
+        self.__root = Square(0, 0, 60, self.__points)
+
+    def getPoints(self):
+        return self.__points
+
+    def split(self):
+        recursive_split(self.__root, self.__capacity)
+
+    def recursive_split(square, capacity):
+        if len(square.getPoints()) <= capacity:
+            return
+
+        w_ = float(square.getWidth()/2)
+        h_ = float(square.getHeight()/2)
+
+        nodePoints = contains(square.getX0(), square.getY0(), w_, h_, square.getPoints())
+        SW = Square(square.getX0(), square.getY0(), w_, h_, nodePoints)
+        recursive_split(SW, capacity)
+
+        nodePoints = contains(square.getX0(), square.getY0()+h_, w_, h_, square.getPoints())
+        NW = Square(square.getX0(), square.getY0()+h_, w_, h_, nodePoints)
+        recursive_split(NW, capacity)
+
+        nodePoints = contains(square.getX0()+w_, square.getY0(), w_, h_, square.getPoints())
+        SE = Square(square.getX0()+w_, square.getY0(), w_, h_, nodePoints)
+        recursive_split(SE, capacity)
+
+        nodePoints = contains(square.getX0()+w_, square.getY0()+h_, w_, h_, square.getPoints())
+        NE = Square(square.getX0()+w_, square.getY0()+h_, w_, h_, nodePoints)
+        recursive_split(NE, capacity)
+
+    def contains(x, y, w, h, points):
+        pts = []
+        for point in points:
+            if point.getX() >= x and point.getX() <= x+w and point.getY() >= y and point.getY() <= y+h:
+                pts.append(point)
+        return pts
+
+
+
+    """def split(self, square):
         halfDimension = square.getDim()/2
         children = []
 
@@ -102,7 +157,7 @@ class QuadTree:
         children.append(square01)
         children.append(square10)
         children.append(square11)
-        square.setChildren(children)
+        square.setChildren(children)"""
 
 data = Input('input.geojson')
 point_list = data.extractPoints()
