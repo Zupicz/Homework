@@ -30,6 +30,26 @@ class Mock:
             points.append(Point(i, randint(0, self.__max_X), randint(0, self.__max_Y)))
         return points
 
+class Input:
+
+    def __init__(self, file):
+        with open(file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        self.__data = data
+
+    def loadElements(self):
+        elements = []
+        for f in self.__data['features']:
+            elements.append(f)
+        return elements
+
+    def extractPoints(self):
+        points = []
+        for f in self.__data['features']:
+            points.append(Point(id = f['properties']['@id'], x = f['geometry']['coordinates'][0], y = f['geometry']['coordinates'][1]))
+        return points
+
 class Square:
 
     def __init__(self, origin, dim):
@@ -84,13 +104,15 @@ class QuadTree:
         children.append(square11)
         square.setChildren(children)
 
-mock = Mock(100, 20, 20)
-mock_points = mock.getPoints()
+data = Input('input.geojson')
+point_list = data.extractPoints()
+print(point_list)
 
-man = SquareManager()
-sq = man.initSquare(mock_points)
+"""man = SquareManager()
+sq = man.initSquare(point_list)
 print(sq)
 
 qt = QuadTree()
 qt.split(sq)
-print(sq)
+print(sq)"""
+
