@@ -28,19 +28,6 @@ class Point:
     def setCluster(self, id):
         self.__cluster_id = id
 
-"""class Mock:
-
-    def __init__(self, size, max_X, max_Y):
-        self.__size = size
-        self.__max_X = max_X
-        self.__max_Y = max_Y
-
-    def getPoints(self):
-        points = []
-        for i in range(0, self.__size):
-            points.append(Point(i, randint(0, self.__max_X), randint(0, self.__max_Y)))
-        return points"""
-
 class Input:
 
     def __init__(self, file):
@@ -60,6 +47,24 @@ class Input:
         for f in self.__data['features']:
             points.append(Point(id = f['properties']['@id'], x = f['geometry']['coordinates'][0], y = f['geometry']['coordinates'][1]))
         return points
+
+    def addCluster(self, points):
+        cluster_IDs = []
+
+        for point in points:
+            cluster_IDs.append(point.getCluster())
+
+        i = 0
+        for feat in self.__data['features']:
+                feat['properties']['cluster_id'] = cluster_IDs[0+i]
+                i = i+1
+
+        """for feat in self.__data['features']:
+            for i in range(len(cluster_IDs)):
+                feat['properties']['cluster_id'] = cluster_IDs[i]"""
+
+        with open('output.geojson', 'w', encoding='utf-8') as f:
+            json.dump(self.__data, f, indent= 2, ensure_ascii= False)
 
 class Square:
 
@@ -112,13 +117,6 @@ class QuadTree:
     def getPoints(self):
         return self.__points
 
-    def contains(self, origin, dim, points):
-        pts = []
-        for point in points:
-            if point.getX() >= origin.getX() and point.getX() <= origin.getX()+dim and point.getY() >= origin.getY() and point.getY() <= origin.getY()+dim:
-                pts.append(point)
-        return pts
-
     def recursive_split(self, square, capacity):
         if len(square.getPoints()) <= capacity:
             return
@@ -127,25 +125,17 @@ class QuadTree:
         origin = square.getOrigin()
 
         children = []
-        #nodePoints = self.contains(square.getX0(), square.getY0(), w_, h_, square.getPoints())
         SW = Square(Point("a", origin.getX(), origin.getY()), dim_, [], "A")
         children.append(SW)
-        #recursive_split(SW, capacity)
 
-        #nodePoints = self.contains(square.getX0() + w_, square.getY0(), w_, h_, square.getPoints())
         SE = Square(Point("b", origin.getX() + dim_, origin.getY()), dim_, [], "B")
         children.append(SE)
-        #recursive_split(SE, capacity)
 
-        #nodePoints = self.contains(square.getX0(), square.getY0()+h_, w_, h_, square.getPoints())
         NW = Square(Point("c", origin.getX(), origin.getY() + dim_), dim_, [], "C")
         children.append(NW)
-        #recursive_split(NW, capacity)
 
-        #nodePoints = self.contains(square.getX0()+w_, square.getY0()+h_, w_, h_, square.getPoints())
         NE = Square(Point("d", origin.getX() + dim_, origin.getY() + dim_), dim_, [], "D")
         children.append(NE)
-        #recursive_split(NE, capacity)
 
         return children
 
@@ -160,7 +150,6 @@ class QuadTree:
 
         capacity = 50
         for node in nodes:
-            print(len(node.getPoints()))
             if len(node.getPoints()) > capacity:
                 qt.split(node)
 
@@ -179,40 +168,16 @@ class QuadTree:
 
         return index
 
-
-    """def split(self, square):
-        halfDimension = square.getDim()/2
-        children = []
-
-        origin = square.getOrigin()
-        square00 = Square(Point("A00", origin.getX(), origin.getY()), halfDimension)
-        square01 = Square(Point("A01", origin.getX()+halfDimension, origin.getY()), halfDimension)
-        square10 = Square(Point("A10", origin.getX(), origin.getY()+halfDimension), halfDimension)
-        square11 = Square(Point("A11", origin.getX()+halfDimension, origin.getY()+halfDimension), halfDimension)
-
-        children.append(square00)
-        children.append(square01)
-        children.append(square10)
-        children.append(square11)
-        square.setChildren(children)"""
-
 data = Input('input.geojson')
 point_list = data.extractPoints()
 
-man = SquareManager()
-root = man.initSquare(point_list)
-#print(root)
+sm = SquareManager()
+root = sm.initSquare(point_list)
 
 qt = QuadTree(50)
 qt.split(root)
 
 print(point_list)
 
-for point in point_list:
-    print(point.getCluster())
-
-GeoJ_structure = {'type': 'FeatureCollection'}
-GeoJ_structure['features'] = point_list[]
-with open('output.json', "w", encoding='utf-8') as f:
-    json.dump(GeoJ_structure, f, indent= 2, ensure_ascii= False)
+data.addCluster(point_list)
 
