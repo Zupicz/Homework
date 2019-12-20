@@ -11,7 +11,7 @@ class Point:
         self.__cluster_id = INIT_CLUSTER_ID
 
     def __repr__(self):
-        return f"(ID={self.__id}, x={self.__x}, y={self.__y})"
+        return f"(ID={self.__id}, ClusterID={self.__cluster_id}, x={self.__x}, y={self.__y})"
 
     def getX(self):
         return self.__x
@@ -70,7 +70,7 @@ class Square:
         self.__id = id
 
     def __repr__(self):
-        return f"(ID={self.__id}, origin={self.__origin}, dim={self.__dim})"
+        return f"(ID={self.__id}, origin={self.__origin}, dim={self.__dim}, points={self.__points})"
 
     def getID(self):
         return self.__id
@@ -94,9 +94,15 @@ class SquareManager:
             maxX = max(maxX, p.getX())
             maxY = max(maxY, p.getY())
 
-        dim = max(maxX, maxY)
+        minX = maxX
+        minY = maxY
+        for p in points:
+            minX = min(minX, p.getX())
+            minY = min(minY, p.getY())
 
-        return Square(Point("origin", 0, 0), dim, points, INIT_CLUSTER_ID)
+        dim = max(maxX - minX, maxY - minY)
+
+        return Square(Point("origin", minX, minY), dim, points, INIT_CLUSTER_ID)
 
 class QuadTree:
 
@@ -122,31 +128,41 @@ class QuadTree:
 
         children = []
         #nodePoints = self.contains(square.getX0(), square.getY0(), w_, h_, square.getPoints())
-        SW = Square(Point("a", origin.getX(), origin.getY()), dim_, [], square.getID() + "A")
+        SW = Square(Point("a", origin.getX(), origin.getY()), dim_, [], "A")
         children.append(SW)
         #recursive_split(SW, capacity)
 
         #nodePoints = self.contains(square.getX0() + w_, square.getY0(), w_, h_, square.getPoints())
-        SE = Square(Point("b", origin.getX() + dim_, origin.getY()), dim_, [], square.getID() + "B")
+        SE = Square(Point("b", origin.getX() + dim_, origin.getY()), dim_, [], "B")
         children.append(SE)
         #recursive_split(SE, capacity)
 
         #nodePoints = self.contains(square.getX0(), square.getY0()+h_, w_, h_, square.getPoints())
-        NW = Square(Point("c", origin.getX(), origin.getY() + dim_), dim_, [], square.getID() + "C")
+        NW = Square(Point("c", origin.getX(), origin.getY() + dim_), dim_, [], "C")
         children.append(NW)
         #recursive_split(NW, capacity)
 
         #nodePoints = self.contains(square.getX0()+w_, square.getY0()+h_, w_, h_, square.getPoints())
-        NE = Square(Point("d", origin.getX() + dim_, origin.getY() + dim_), dim_, [], square.getID() + "D")
+        NE = Square(Point("d", origin.getX() + dim_, origin.getY() + dim_), dim_, [], "D")
         children.append(NE)
         #recursive_split(NE, capacity)
 
         return children
 
     def split(self, root):
-        result = self.recursive_split(root, self.__capacity)
+        nodes = self.recursive_split(root, self.__capacity)
 
-        return result
+        for point in root.getPoints():
+            index = qt.getSquareIndex(point, root.getOrigin(), root.getDim())
+            node = nodes[index]
+            point.setCluster(point.getCluster() + node.getID())
+            node.getPoints().append(point)
+
+        capacity = 50
+        for node in nodes:
+            print(len(node.getPoints()))
+            if len(node.getPoints()) > capacity:
+                qt.split(node)
 
     def getSquareIndex(self, point, origin, dim):
         index = 0
@@ -185,19 +201,18 @@ point_list = data.extractPoints()
 
 man = SquareManager()
 root = man.initSquare(point_list)
-print(root)
+#print(root)
 
 qt = QuadTree(50)
-nodes = qt.split(root)
-print(nodes)
+qt.split(root)
 
-print(len(point_list))
+print(point_list)
 
-"""man = SquareManager()
-sq = man.initSquare(point_list)
-print(sq)
+for point in point_list:
+    print(point.getCluster())
 
-qt = QuadTree()
-qt.split(sq)
-print(sq)"""
+GeoJ_structure = {'type': 'FeatureCollection'}
+GeoJ_structure['features'] = point_list[]
+with open('output.json', "w", encoding='utf-8') as f:
+    json.dump(GeoJ_structure, f, indent= 2, ensure_ascii= False)
 
