@@ -4,8 +4,8 @@ Jakub Zupko
 
 ## Popis
 Program rozdělí body v ploše do čtverců tak, aby každý čtverec obsahoval maximálně takový
-počet bodů, jaký si uživatel navolí, přímo v programu se kapacita nastavuje v proměnné `NodeCapacity`.
-Defaultně je v programu nastavena kapacita 50.
+počet bodů, jaký si uživatel navolí. Přímo v programu se kapacita nastavuje v proměnné `NodeCapacity`.
+Defaultně je v programu nastavena kapacita 50 bodů.
 Algoritmus **QuadTree** postupuje tak, že nejdřív zkontroluje, kolik je ve čtverci bodů,
 a pokud je jich více než je určená kapacita, rozdělí čtverec na čtyři menší čtverce.
 Takto rekurzivně dělí do té doby, dokud není v každém jednotlivém čtverci maximálně tolik
@@ -32,13 +32,36 @@ daný bod přiřazuje do příslušného čtverce.
 ### Třída `Data`
 - otevírá vstupní soubor a ukládá jeho obsah do datové položky `data`
 
+##### Metoda `extractPoints()`
+- extrahuje body z datové položky `data` a ukládá je jako objekty *Point* v novém listu `points`
+
+##### Metoda `addClusterID()`
+- přidává novou property `cluster_id` bodům v datové položce `data` a výsledek exportuje v novém souboru `output.geojson`
+
 ### Třída `Square`
 - definuje objekt *Square*, který má datové položky `origin` pro počáteční bod,
 `dim` pro délku strany čtverce, `points` pro množinu bodů náležících čtverci a `id` jako
 identifikátor čtverce
 
 ### Třída `SquareUtil`
-- funkční třída zpracovávající objekty *Square*. Slouží k výrobě počátečního *bounding boxu*
+- funkční třída zpracovávající objekty *Square*
+- slouží k výrobě počátečního *bounding boxu*, tedy prvotního hraničního čtverce
+
+##### Metoda `initSquare()`
+- vytváří počáteční *bounding box* s počátkem a délkou odpovídajícími souřadnicím bodů v listu `points`
+- počátečnímu čtverci přířazuje identifikátor definovaný v konstantě `INIT_CLUSTER_ID`, v programu defaultně **"A"**
 
 ### Třída `QuadTree`
 - třída obsahující kód pro dělení čtverců
+
+##### Metoda `createSquares()`
+- rozdělí čtverec do čtyř dceřinných čtverců, každému přířadí identifikátor **"A"**, **"B"**, **"C"** nebo **"D"** následujícím způsobem:
+![A,B,C,D squares](https://imgur.com/a/NAAKkWT.png)
+- dceřinné čtverce přiřadí do nového listu `children`
+
+##### Metoda `split()`
+- stará se o samotné dělení čtverců pomocí algoritmu QuadTree
+
+##### Metoda `getSquareIndex()`
+- vrací index čtverce, který obsahuje příslušný bod
+

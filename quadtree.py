@@ -124,7 +124,7 @@ class QuadTree:
         return self.__points
 
     def createSquares(self, square, capacity):
-        """Split th square into four children named SW, SE, NW, NE which have IDs
+        """Split the square into four children named SW, SE, NW, NE which have IDs
         'A', 'B', 'C' and 'D' respectively. Append children in a new list 'children'."""
 
         dim_ = float(square.getDim()/2)
