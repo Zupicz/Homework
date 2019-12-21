@@ -1,6 +1,8 @@
 import json
 
-INIT_CLUSTER_ID = "A"
+#constant variable declaring initial cluster_id for points and nodes
+def INIT_CLUSTER_ID():
+    return "A"
 
 class Point:
 
@@ -8,7 +10,7 @@ class Point:
         self.__id = id
         self.__x = x
         self.__y = y
-        self.__cluster_id = INIT_CLUSTER_ID
+        self.__cluster_id = INIT_CLUSTER_ID()
 
     def __repr__(self):
         return f"(ID={self.__id}, ClusterID={self.__cluster_id}, x={self.__x}, y={self.__y})"
@@ -22,13 +24,13 @@ class Point:
     def getID(self):
         return self.__id
 
-    def getCluster(self):
+    def getClusterID(self):
         return self.__cluster_id
 
     def setCluster(self, id):
         self.__cluster_id = id
 
-class Input:
+class Data:
 
     def __init__(self, file):
         with open(file, "r", encoding="utf-8") as f:
@@ -36,32 +38,18 @@ class Input:
 
         self.__data = data
 
-    def loadElements(self):
-        elements = []
-        for f in self.__data['features']:
-            elements.append(f)
-        return elements
-
     def extractPoints(self):
         points = []
         for f in self.__data['features']:
             points.append(Point(id = f['properties']['@id'], x = f['geometry']['coordinates'][0], y = f['geometry']['coordinates'][1]))
         return points
 
-    def addCluster(self, points):
-        cluster_IDs = []
-
-        for point in points:
-            cluster_IDs.append(point.getCluster())
+    def addClusterID(self, points):
 
         i = 0
         for feat in self.__data['features']:
-                feat['properties']['cluster_id'] = cluster_IDs[0+i]
-                i = i+1
-
-        """for feat in self.__data['features']:
-            for i in range(len(cluster_IDs)):
-                feat['properties']['cluster_id'] = cluster_IDs[i]"""
+            feat['properties']['cluster_id'] = points[i].getClusterID()
+            i += 1
 
         with open('output.geojson', 'w', encoding='utf-8') as f:
             json.dump(self.__data, f, indent= 2, ensure_ascii= False)
@@ -101,13 +89,14 @@ class SquareManager:
 
         minX = maxX
         minY = maxY
+
         for p in points:
             minX = min(minX, p.getX())
             minY = min(minY, p.getY())
 
         dim = max(maxX - minX, maxY - minY)
 
-        return Square(Point("origin", minX, minY), dim, points, INIT_CLUSTER_ID)
+        return Square(Point("origin", minX, minY), dim, points, INIT_CLUSTER_ID())
 
 class QuadTree:
 
@@ -140,17 +129,17 @@ class QuadTree:
         return children
 
     def split(self, root):
+
         nodes = self.recursive_split(root, self.__capacity)
 
         for point in root.getPoints():
             index = qt.getSquareIndex(point, root.getOrigin(), root.getDim())
             node = nodes[index]
-            point.setCluster(point.getCluster() + node.getID())
+            point.setCluster(point.getClusterID() + node.getID())
             node.getPoints().append(point)
 
-        capacity = 50
         for node in nodes:
-            if len(node.getPoints()) > capacity:
+            if len(node.getPoints()) > self.__capacity:
                 qt.split(node)
 
     def getSquareIndex(self, point, origin, dim):
@@ -168,7 +157,8 @@ class QuadTree:
 
         return index
 
-data = Input('input.geojson')
+
+data = Data('input.geojson')
 point_list = data.extractPoints()
 
 sm = SquareManager()
@@ -179,5 +169,5 @@ qt.split(root)
 
 print(point_list)
 
-data.addCluster(point_list)
+data.addClusterID(point_list)
 
