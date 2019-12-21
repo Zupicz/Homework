@@ -77,7 +77,7 @@ class Square:
     def getPoints(self):
         return self.__points
 
-class SquareManager:
+class SquareUtil:
 
     def initSquare(self, points):
         maxX = 0
@@ -133,14 +133,14 @@ class QuadTree:
         nodes = self.recursive_split(root, self.__capacity)
 
         for point in root.getPoints():
-            index = qt.getSquareIndex(point, root.getOrigin(), root.getDim())
+            index = self.getSquareIndex(point, root.getOrigin(), root.getDim())
             node = nodes[index]
             point.setCluster(point.getClusterID() + node.getID())
             node.getPoints().append(point)
 
         for node in nodes:
             if len(node.getPoints()) > self.__capacity:
-                qt.split(node)
+                self.split(node)
 
     def getSquareIndex(self, point, origin, dim):
         index = 0
@@ -156,18 +156,4 @@ class QuadTree:
                 index = 2
 
         return index
-
-
-data = Data('input.geojson')
-point_list = data.extractPoints()
-
-sm = SquareManager()
-root = sm.initSquare(point_list)
-
-qt = QuadTree(50)
-qt.split(root)
-
-print(point_list)
-
-data.addClusterID(point_list)
 
