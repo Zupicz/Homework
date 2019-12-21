@@ -1,0 +1,44 @@
+# Dělení bodů v ploše pomocí algoritmu QuadTree
+
+Jakub Zupko
+
+## Popis
+Program rozdělí body v ploše do čtverců tak, aby každý čtverec obsahoval maximálně takový
+počet bodů, jaký si uživatel navolí, přímo v programu se kapacita nastavuje v proměnné `NodeCapacity`.
+Defaultně je v programu nastavena kapacita 50.
+Algoritmus **QuadTree** postupuje tak, že nejdřív zkontroluje, kolik je ve čtverci bodů,
+a pokud je jich více než je určená kapacita, rozdělí čtverec na čtyři menší čtverce.
+Takto rekurzivně dělí do té doby, dokud není v každém jednotlivém čtverci maximálně tolik
+bodů, kolik je určeno v kapacitě.
+
+Výsledek může vypadat například takto:
+![Wikipedia_quadtree.svg](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Point_quadtree.svg/300px-Point_quadtree.svg.png)
+
+## Vstup
+Vstupem je soubor ve formátu [GeoJSON](https://tools.ietf.org/html/rfc7946) jako [Feature Collection](https://tools.ietf.org/html/rfc7946#section-3.3)
+bodů. Jméno souboru napište jako argument v `Data()`, defaultně program bere data ze souboru `input.geojson`.
+
+## Výstup
+Výstupem programu je opět soubor ve formátu GeoJSON, defaultně pojmenovaný jako `output.geojson`.
+Tento soubor má navíc ve své kolekci bodů u každého z nich property `cluster_id`, která
+daný bod přiřazuje do příslušného čtverce.
+
+## Hlavní užívané třídy a metody programu
+
+### Třída `Point`
+- definuje objekt *Point*, který ma datové položky `id` jako identifikátor bodu,
+`x` pro souřadnici *x* a `y` pro souřadnici *y*
+
+### Třída `Data`
+- otevírá vstupní soubor a ukládá jeho obsah do datové položky `data`
+
+### Třída `Square`
+- definuje objekt *Square*, který má datové položky `origin` pro počáteční bod,
+`dim` pro délku strany čtverce, `points` pro množinu bodů náležících čtverci a `id` jako
+identifikátor čtverce
+
+### Třída `SquareUtil`
+- funkční třída zpracovávající objekty *Square*. Slouží k výrobě počátečního *bounding boxu*
+
+### Třída `QuadTree`
+- třída obsahující kód pro dělení čtverců
