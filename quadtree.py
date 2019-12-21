@@ -33,18 +33,24 @@ class Point:
 class Data:
 
     def __init__(self, file):
+        """Open the input file and save it in the class field self.__data."""
         with open(file, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         self.__data = data
 
     def extractPoints(self):
+        """Extract the points from self.__data and save them in a new list 'points'.
+        Points have 3 attributes: 'id', 'x' and 'y'."""
+
         points = []
         for f in self.__data['features']:
             points.append(Point(id = f['properties']['@id'], x = f['geometry']['coordinates'][0], y = f['geometry']['coordinates'][1]))
         return points
 
     def addClusterID(self, points):
+        """Add a new property 'cluster_id' to the points in 'self.__data['features']'
+        and export the result in a new file 'output.geojson'."""
 
         i = 0
         for feat in self.__data['features']:
@@ -57,6 +63,13 @@ class Data:
 class Square:
 
     def __init__(self, origin, dim, points, id):
+        """
+        'origin' of the Square is a Point,
+        'dim' is the length, respectively the width of a Square,
+        'points' are the Points belonging to the Square,
+        'id' is the identificator of the Square.
+        """
+
         self.__origin = origin
         self.__dim = dim
         self.__points = points
@@ -80,6 +93,10 @@ class Square:
 class SquareUtil:
 
     def initSquare(self, points):
+        """Create a bounding box with an origin and dimensions corresponding
+        to the coordinates of the points in 'points'. Give the bounding box
+        an identificator defined in INIT_CLUSTER_ID."""
+
         maxX = 0
         maxY = 0
 
@@ -106,9 +123,9 @@ class QuadTree:
     def getPoints(self):
         return self.__points
 
-    def recursive_split(self, square, capacity):
-        if len(square.getPoints()) <= capacity:
-            return
+    def createSquares(self, square, capacity):
+        """Split th square into four children named SW, SE, NW, NE which have IDs
+        'A', 'B', 'C' and 'D' respectively. Append children in a new list 'children'."""
 
         dim_ = float(square.getDim()/2)
         origin = square.getOrigin()
@@ -129,8 +146,15 @@ class QuadTree:
         return children
 
     def split(self, root):
+        """If there's less points in the root than amount in self.__capacity, do nothing.
+        If there's more points, split the root square in four by calling the method createSquares().
+        Assign points to one of four corresponding square by calling the method getSquareIndex().
+        Recurse if needed."""
 
-        nodes = self.recursive_split(root, self.__capacity)
+        if len(root.getPoints()) <= self.__capacity:
+            return
+
+        nodes = self.createSquares(root, self.__capacity)
 
         for point in root.getPoints():
             index = self.getSquareIndex(point, root.getOrigin(), root.getDim())
@@ -143,6 +167,7 @@ class QuadTree:
                 self.split(node)
 
     def getSquareIndex(self, point, origin, dim):
+        """Return index of one of the four squares which contains the 'point'."""
         index = 0
         half = dim / 2
 
